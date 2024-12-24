@@ -33,28 +33,35 @@ function setupFormListeners(formSettingsData) {
         );
 
         if (inputElement) {
-          inputElement.addEventListener("input", function () {
-            var value;
+          if (field.label === "isSubmit") {
+            // Listen for click events when the label is "isSubmit"
+            inputElement.addEventListener("click", function () {
+              updateFormData(formSetting.id, field.label, true);
+            });
+          } else {
+            inputElement.addEventListener("input", function () {
+              var value;
 
-            if (inputElement.type === "checkbox") {
-              value = inputElement.checked ? true : false;
-            } else {
-              value = field.arrAttributes
-                .map(function (attribute) {
-                  var element = document.querySelector(
-                    "[" +
-                      attribute.attribute +
-                      '="' +
-                      attribute.attributeVal +
-                      '"]'
-                  );
-                  return element ? element.value.trim() : "";
-                })
-                .join("");
-            }
+              if (inputElement.type === "checkbox") {
+                value = inputElement.checked ? true : false;
+              } else {
+                value = field.arrAttributes
+                  .map(function (attribute) {
+                    var element = document.querySelector(
+                      "[" +
+                        attribute.attribute +
+                        '="' +
+                        attribute.attributeVal +
+                        '"]'
+                    );
+                    return element ? element.value.trim() : "";
+                  })
+                  .join("");
+              }
 
-            updateFormData(formSetting.id, field.label, value);
-          });
+              updateFormData(formSetting.id, field.label, value);
+            });
+          }
         }
       });
     });
