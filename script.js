@@ -1,12 +1,13 @@
 const BASE_URL = "https://api-hlg-dev.human-life.vn";
-let pageSettingId = "cm51uqufc0010nzzxx9n5yzmo";
-let apiKey = "2b83e9cc-fda0-4a9c-ae09-b203e95e43e3";
+let pageSettingId = "cm53ncdm400039oliwvjlke66";
+let apiKey = "80a01e7d-ad77-464e-be5f-042cbf3c3480";
 let debounceTimer,
   formData = [],
   currentFormData = {},
   lstUUid = [];
-let clientId = localStorage.getItem("clientId");
+let clientId = localStorage.getItem("clientId") || "";
 const fullUrl = window.location.href;
+let agencyId = "";
 
 (async function init() {
   try {
@@ -97,7 +98,10 @@ async function handleSaveData(formInfo) {
       (item) => item.formSettingId === formInfo.formSettingId
     );
     if (currentUuid?.uuid) formInfo.objectId = currentUuid.uuid;
-    if (clientId) formInfo.clientId = clientId;
+    Object.assign(formInfo, {
+      clientId,
+      agencyId,
+    });
 
     const response = await fetch(
       "https://api-hlg-dev.human-life.vn/api/form/users-list/upsert-data",
@@ -142,15 +146,21 @@ async function getCmsFormSettings() {
 
     const { data } = await response.json();
 
-    if (!data && !data.length) throw "Form settings not found";
+    if (!data || !data?.dataSettings || !data?.dataSettings?.length)
+      throw "Form settings not found";
 
     //if user not in the config url
     const configPageUrl =
-      data[0].pageSettings.page.domain + "/" + data[0].pageSettings.pageUri;
+      data.dataSettings[0].pageSettings.page.domain +
+      "/" +
+      data.dataSettings[0].pageSettings.pageUri;
     // if (fullUrl !== configPageUrl)
     //   throw "Form settings not applicable to this page";
 
-    return data.map((item) => ({
+    //assign agencyId to get company name
+    agencyId = data?.agencyId || null;
+
+    return data?.dataSettings?.map((item) => ({
       id: item.id,
       settings: item.settings,
     }));
