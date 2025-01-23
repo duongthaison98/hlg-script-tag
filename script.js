@@ -1,6 +1,6 @@
 const BASE_URL = "https://api-hlg-dev.human-life.vn";
-let pageSettingId = "cm53ncdm400039oliwvjlke66";
-let apiKey = "80a01e7d-ad77-464e-be5f-042cbf3c3480";
+let pageSettingId = "cm5w6eeip033o6sdwhlz51xs7";
+let apiKey = "1dbcc525-c7e5-4b33-a60f-e4c0c421a0ee";
 let debounceTimer,
   formData = [],
   currentFormData = {},
@@ -8,6 +8,13 @@ let debounceTimer,
 let clientId = localStorage.getItem("clientId") || "";
 const fullUrl = window.location.href;
 let agencyId = "";
+const FormFields = {
+  Phone: "phone",
+  Email: "email",
+  ProductName: "productName",
+  IsPolicy: "isPolicy",
+  IsSubmit: "isSubmit",
+};
 
 (async function init() {
   try {
@@ -21,47 +28,81 @@ let agencyId = "";
 })();
 
 function setupFormListeners(formSettingsData) {
-  formSettingsData.forEach(function (formSetting) {
-    formData.push({ formSettingId: formSetting.id, ObjetctData: {} });
+  formSettingsData.forEach((formSetting) => {
+    formData.push({ formSettingId: formSetting.id, ObjectData: {} });
     lstUUid.push({ formSettingId: formSetting.id, uuid: "" });
 
-    formSetting.settings.forEach(function (field) {
-      formData[formData.length - 1].ObjetctData[field.label] = "";
+    formSetting.settings.forEach((field) => {
+      if (field.label === FormFields.IsSubmit || field.label === FormFields.IsPolicy) {
+        formData[formData.length - 1].ObjectData[field.label] = false;
+      } else {
+        formData[formData.length - 1].ObjectData[field.label] = "";
+      }
 
-      field.arrAttributes.forEach(function (attr) {
+      field.arrAttributes.forEach((attr) => {
         var inputElement = document.querySelector(
           "[" + attr.attribute + '="' + attr.attributeVal + '"]'
         );
 
         if (inputElement) {
-          if (field.label === "isSubmit") {
-            // Listen for click events when the label is "isSubmit"
-            inputElement.addEventListener("click", function () {
-              updateFormData(formSetting.id, field.label, true);
-            });
-          } else {
-            inputElement.addEventListener("input", function () {
-              var value;
+          switch (field.label) {
+            case FormFields.IsSubmit:
+              inputElement.addEventListener("click", () => {
+                updateFormData(formSetting.id, field.label, true);
+              });
+              break;
+            case FormFields.ProductName:
+              inputElement.addEventListener("change", () => {
+                var value;
 
-              if (inputElement.type === "checkbox") {
-                value = inputElement.checked ? true : false;
-              } else {
-                value = field.arrAttributes
-                  .map(function (attribute) {
-                    var element = document.querySelector(
-                      "[" +
+                if (
+                  inputElement.type === "checkbox" ||
+                  inputElement.type === "radio"
+                ) {
+                  value = field.arrAttributes
+                    .map((attribute) => {
+                      var element = document.querySelector(
+                        "[" +
                         attribute.attribute +
                         '="' +
                         attribute.attributeVal +
                         '"]'
-                    );
-                    return element ? element.value.trim() : "";
-                  })
-                  .join("");
-              }
+                      );
+                      return element && element.checked
+                        ? element.dataset.value
+                        : null;
+                    })
+                    .filter(Boolean)
+                    .join(", ");
+                } else {
+                  value = inputElement.value;
+                }
+                updateFormData(formSetting.id, field.label, value);
+              });
+              break;
+            default:
+              inputElement.addEventListener("input", () => {
+                var value;
 
-              updateFormData(formSetting.id, field.label, value);
-            });
+                if (inputElement.type === "checkbox") {
+                  value = inputElement.checked ? true : false;
+                } else {
+                  value = field.arrAttributes
+                    .map((attribute) => {
+                      var element = document.querySelector(
+                        "[" +
+                        attribute.attribute +
+                        '="' +
+                        attribute.attributeVal +
+                        '"]'
+                      );
+                      return element ? element.value.trim() : "";
+                    })
+                    .join("");
+                }
+                updateFormData(formSetting.id, field.label, value);
+              });
+              break;
           }
         }
       });
@@ -80,7 +121,7 @@ function updateFormData(formId, label, inputValue) {
     currentFormData = selectedFormData;
 
     //prepare payload data
-    selectedFormData.ObjetctData[label] = inputValue;
+    selectedFormData.ObjectData[label] = inputValue;
   }
 
   //send data after 300ms
@@ -122,7 +163,7 @@ async function handleSaveData(formInfo) {
     //if uuid is empty, save uuid to currentUuid so every call later payload have appropriate objectId by each form
     if (currentUuid && !currentUuid.uuid) currentUuid.uuid = resData.data.uuid;
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -133,8 +174,8 @@ async function getCmsFormSettings() {
 
     const response = await fetch(
       "https://api-hlg-dev.human-life.vn/api/form?pageSettingId=" +
-        pageSettingId +
-        "&status=true",
+      pageSettingId +
+      "&status=true",
       {
         method: "GET",
         headers: {
@@ -154,8 +195,8 @@ async function getCmsFormSettings() {
       data.dataSettings[0].pageSettings.page.domain +
       "/" +
       data.dataSettings[0].pageSettings.pageUri;
-    // if (fullUrl !== configPageUrl)
-    //   throw "Form settings not applicable to this page";
+    if (fullUrl !== configPageUrl)
+      throw "Form settings not applicable to this page";
 
     //assign agencyId to get company name
     agencyId = data?.agencyId || null;
@@ -165,7 +206,7 @@ async function getCmsFormSettings() {
       settings: item.settings,
     }));
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
@@ -182,7 +223,7 @@ async function getStart() {
       {
         method: "POST",
         headers: new Headers({ "content-type": "application/json" }),
-        body: JSON.stringify({ clientId, currentUrl: location.href }),
+        body: JSON.stringify({ clientId, currentUrl: fullUrl }),
       }
     );
     if (!response.ok) throw response.status;
@@ -194,7 +235,7 @@ async function getStart() {
       localStorage.removeItem("clientId");
     }
   } catch (error) {
-    throw new Error(error);
+    throw error;
   }
 }
 
