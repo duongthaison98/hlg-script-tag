@@ -1,6 +1,6 @@
 const BASE_URL = "https://api-hlg-dev.human-life.vn";
-let pageSettingId = "cm5w6eeip033o6sdwhlz51xs7";
-let apiKey = "1dbcc525-c7e5-4b33-a60f-e4c0c421a0ee";
+let pageSettingId = "cm7lly4bl000bhofsk5zp9zft";
+let apiKey = "f11163cd-be33-4f57-9332-600ba53d04c5";
 let debounceTimer,
   formData = [],
   currentFormData = {},
@@ -40,9 +40,8 @@ function setupFormListeners(formSettingsData) {
       }
 
       field.arrAttributes.forEach((attr) => {
-        var inputElement = document.querySelector(
-          "[" + attr.attribute + '="' + attr.attributeVal + '"]'
-        );
+        const iframe = document.querySelector("iframe");
+        const inputElement = getElement(attr, iframe);
 
         if (inputElement) {
           switch (field.label) {
@@ -53,7 +52,7 @@ function setupFormListeners(formSettingsData) {
               break;
             case FormFields.ProductName:
               inputElement.addEventListener("change", () => {
-                var value;
+                let value;
 
                 if (
                   inputElement.type === "checkbox" ||
@@ -61,15 +60,9 @@ function setupFormListeners(formSettingsData) {
                 ) {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      var element = document.querySelector(
-                        "[" +
-                        attribute.attribute +
-                        '="' +
-                        attribute.attributeVal +
-                        '"]'
-                      );
+                      const element = getElement(attribute, iframe);
                       return element && element.checked
-                        ? element.dataset.value
+                        ? element.dataset.value || element.value
                         : null;
                     })
                     .filter(Boolean)
@@ -82,20 +75,14 @@ function setupFormListeners(formSettingsData) {
               break;
             default:
               inputElement.addEventListener("input", () => {
-                var value;
+                let value;
 
                 if (inputElement.type === "checkbox") {
                   value = inputElement.checked ? true : false;
                 } else {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      var element = document.querySelector(
-                        "[" +
-                        attribute.attribute +
-                        '="' +
-                        attribute.attributeVal +
-                        '"]'
-                      );
+                      const element = getElement(attribute, iframe);
                       return element ? element.value.trim() : "";
                     })
                     .join("");
@@ -193,10 +180,9 @@ async function getCmsFormSettings() {
     //if user not in the config url
     const configPageUrl =
       data.dataSettings[0].pageSettings.page.domain +
-      "/" +
       data.dataSettings[0].pageSettings.pageUri;
-    if (fullUrl !== configPageUrl)
-      throw "Form settings not applicable to this page";
+    // if (fullUrl !== configPageUrl)
+    //   throw "Form settings not applicable to this page";
 
     //assign agencyId to get company name
     agencyId = data?.agencyId || null;
@@ -263,3 +249,22 @@ window.addEventListener("pagehide", function () {
     handleSaveData(currentFormData);
   }
 });
+
+function getElement(attribute, iframe) {
+  if (iframe) {
+    return iframe.contentDocument.querySelector(
+      "[" +
+      attribute.attribute +
+      '="' +
+      attribute.attributeVal +
+      '"]'
+    );
+  }
+  return document.querySelector(
+    "[" +
+    attribute.attribute +
+    '="' +
+    attribute.attributeVal +
+    '"]'
+  );
+}
