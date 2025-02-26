@@ -181,8 +181,8 @@ async function getCmsFormSettings() {
     const configPageUrl =
       data.dataSettings[0].pageSettings.page.domain +
       data.dataSettings[0].pageSettings.pageUri;
-    // if (fullUrl !== configPageUrl)
-    //   throw "Form settings not applicable to this page";
+    if (fullUrl !== configPageUrl)
+      throw "Form settings not applicable to this page";
 
     //assign agencyId to get company name
     agencyId = data?.agencyId || null;
