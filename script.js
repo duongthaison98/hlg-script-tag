@@ -41,7 +41,7 @@ function setupFormListeners(formSettingsData) {
 
       field.arrAttributes.forEach((attr) => {
         const iframe = document.querySelector("iframe");
-        const inputElement = getElement(attr, iframe);
+        const inputElement = getElement(attr, iframe, formSetting.id, field.label);
 
         if (inputElement) {
           switch (field.label) {
@@ -60,7 +60,7 @@ function setupFormListeners(formSettingsData) {
                 ) {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      const element = getElement(attribute, iframe);
+                      const element = getElement(attribute, iframe, formSetting.id, field.label);
                       return element && element.checked
                         ? element.dataset.value || element.value
                         : null;
@@ -82,7 +82,7 @@ function setupFormListeners(formSettingsData) {
                 } else {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      const element = getElement(attribute, iframe);
+                      const element = getElement(attribute, iframe, formSetting.id, field.label);
                       return element ? element.value.trim() : "";
                     })
                     .join("");
@@ -145,10 +145,10 @@ async function handleSaveData(formInfo) {
     if (!response.ok) throw response.status;
 
     const resData = await response.json();
-    if (!resData.data) throw "Script tag error";
-
-    //if uuid is empty, save uuid to currentUuid so every call later payload have appropriate objectId by each form
-    if (currentUuid && !currentUuid.uuid) currentUuid.uuid = resData.data.uuid;
+    if (resData.data) {
+      //if uuid is empty, save uuid to currentUuid so every call later payload have appropriate objectId by each form
+      if (currentUuid && !currentUuid.uuid) currentUuid.uuid = resData.data.uuid;
+    }
   } catch (error) {
     throw error;
   }
@@ -250,21 +250,30 @@ window.addEventListener("pagehide", function () {
   }
 });
 
-function getElement(attribute, iframe) {
-  if (iframe) {
-    return iframe.contentDocument.querySelector(
+function getElement(attribute, iframe, formSettingId, label) {
+  const inputEl = iframe
+    ? iframe.contentDocument.querySelector(
       "[" +
       attribute.attribute +
       '="' +
       attribute.attributeVal +
-      '"]'
-    );
+      '"]')
+    : document.querySelector(
+      "[" +
+      attribute.attribute +
+      '="' +
+      attribute.attributeVal +
+      '"]');
+
+  //add event when user click submit button not having id attribute
+  if (inputEl && label === FormFields.Phone) {
+    const parentForm = inputEl.closest("form");
+    if (parentForm) {
+      parentForm.addEventListener("submit", () => {
+        updateFormData(formSettingId, FormFields.IsSubmit, true);
+      });
+    }
   }
-  return document.querySelector(
-    "[" +
-    attribute.attribute +
-    '="' +
-    attribute.attributeVal +
-    '"]'
-  );
+
+  return inputEl;
 }
