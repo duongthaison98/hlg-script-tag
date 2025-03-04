@@ -33,7 +33,10 @@ function setupFormListeners(formSettingsData) {
     lstUUid.push({ formSettingId: formSetting.id, uuid: "" });
 
     formSetting.settings.forEach((field) => {
-      if (field.label === FormFields.IsSubmit || field.label === FormFields.IsPolicy) {
+      if (
+        field.label === FormFields.IsSubmit ||
+        field.label === FormFields.IsPolicy
+      ) {
         formData[formData.length - 1].ObjectData[field.label] = false;
       } else {
         formData[formData.length - 1].ObjectData[field.label] = "";
@@ -41,7 +44,12 @@ function setupFormListeners(formSettingsData) {
 
       field.arrAttributes.forEach((attr) => {
         const iframe = document.querySelector("iframe");
-        const inputElement = getElement(attr, iframe, formSetting.id, field.label);
+        const inputElement = getElement(
+          attr,
+          iframe,
+          formSetting.id,
+          field.label
+        );
 
         if (inputElement) {
           switch (field.label) {
@@ -60,7 +68,12 @@ function setupFormListeners(formSettingsData) {
                 ) {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      const element = getElement(attribute, iframe, formSetting.id, field.label);
+                      const element = getElement(
+                        attribute,
+                        iframe,
+                        formSetting.id,
+                        field.label
+                      );
                       return element && element.checked
                         ? element.dataset.value || element.value
                         : null;
@@ -82,7 +95,12 @@ function setupFormListeners(formSettingsData) {
                 } else {
                   value = field.arrAttributes
                     .map((attribute) => {
-                      const element = getElement(attribute, iframe, formSetting.id, field.label);
+                      const element = getElement(
+                        attribute,
+                        iframe,
+                        formSetting.id,
+                        field.label
+                      );
                       return element ? element.value.trim() : "";
                     })
                     .join("");
@@ -147,7 +165,8 @@ async function handleSaveData(formInfo) {
     const resData = await response.json();
     if (resData.data) {
       //if uuid is empty, save uuid to currentUuid so every call later payload have appropriate objectId by each form
-      if (currentUuid && !currentUuid.uuid) currentUuid.uuid = resData.data.uuid;
+      if (currentUuid && !currentUuid.uuid)
+        currentUuid.uuid = resData.data.uuid;
     }
   } catch (error) {
     throw error;
@@ -161,8 +180,8 @@ async function getCmsFormSettings() {
 
     const response = await fetch(
       "https://api-hlg-dev.human-life.vn/api/form?pageSettingId=" +
-      pageSettingId +
-      "&status=true",
+        pageSettingId +
+        "&status=true",
       {
         method: "GET",
         headers: {
@@ -253,17 +272,11 @@ window.addEventListener("pagehide", function () {
 function getElement(attribute, iframe, formSettingId, label) {
   const inputEl = iframe
     ? iframe.contentDocument.querySelector(
-      "[" +
-      attribute.attribute +
-      '="' +
-      attribute.attributeVal +
-      '"]')
+        "[" + attribute.attribute + '="' + attribute.attributeVal + '"]'
+      )
     : document.querySelector(
-      "[" +
-      attribute.attribute +
-      '="' +
-      attribute.attributeVal +
-      '"]');
+        "[" + attribute.attribute + '="' + attribute.attributeVal + '"]'
+      );
 
   //add event when user click submit button not having id attribute
   if (inputEl && label === FormFields.Phone) {
