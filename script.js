@@ -1,6 +1,6 @@
 const BASE_URL = "https://api-hlg-dev.human-life.vn";
-let pageSettingId = "cm7lly4bl000bhofsk5zp9zft";
-let apiKey = "f11163cd-be33-4f57-9332-600ba53d04c5";
+let pageSettingId = "cm7vn3q7f007i15epgjbizm02";
+let apiKey = "e070997c-ba64-43e1-bbd5-6cebc54dda89";
 let debounceTimer,
   formData = [],
   currentFormData = {},
