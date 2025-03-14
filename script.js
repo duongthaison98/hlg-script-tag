@@ -1,6 +1,6 @@
 const BASE_URL = "https://api-hlg-dev.human-life.vn";
-let pageSettingId = "cm7vn3q7f007i15epgjbizm02";
-let apiKey = "e070997c-ba64-43e1-bbd5-6cebc54dda89";
+let pageSettingId = "cm88gglqd07pj42ivfmf6gbgx";
+let apiKey = "f11163cd-be33-4f57-9332-600ba53d04c5";
 let debounceTimer,
   formData = [],
   currentFormData = {},
@@ -270,13 +270,19 @@ window.addEventListener("pagehide", function () {
 });
 
 function getElement(attribute, iframe, formSettingId, label) {
-  const inputEl = iframe
-    ? iframe.contentDocument.querySelector(
-        "[" + attribute.attribute + '="' + attribute.attributeVal + '"]'
-      )
-    : document.querySelector(
-        "[" + attribute.attribute + '="' + attribute.attributeVal + '"]'
-      );
+  const selector =
+    "[" + attribute.attribute + '="' + attribute.attributeVal + '"]';
+  let inputEl = null;
+
+  //check if form is in iframe
+  if (iframe && iframe.contentDocument) {
+    inputEl = iframe.contentDocument.querySelector(selector);
+  }
+
+  //check if form is not in iframe
+  if (!inputEl) {
+    inputEl = document.querySelector(selector);
+  }
 
   //add event when user click submit button not having id attribute
   if (inputEl && label === FormFields.Phone) {
