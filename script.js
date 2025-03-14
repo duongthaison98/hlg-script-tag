@@ -150,7 +150,7 @@ async function handleSaveData(formInfo) {
     });
 
     const response = await fetch(
-      "https://api-hlg-dev.human-life.vn/api/form/users-list/upsert-data",
+      BASE_URL + "/api/form/users-list/upsert-data",
       {
         method: "PUT",
         headers: {
@@ -179,9 +179,7 @@ async function getCmsFormSettings() {
     if (!pageSettingId) throw "Page settings not found";
 
     const response = await fetch(
-      "https://api-hlg-dev.human-life.vn/api/form?pageSettingId=" +
-        pageSettingId +
-        "&status=true",
+      BASE_URL + "/api/form?pageSettingId=" + pageSettingId + "&status=true",
       {
         method: "GET",
         headers: {
@@ -223,14 +221,11 @@ async function getStart() {
       localStorage.setItem("clientId", clientId);
     }
 
-    const response = await fetch(
-      "https://api-hlg-dev.human-life.vn/api/product-messages/start",
-      {
-        method: "POST",
-        headers: new Headers({ "content-type": "application/json" }),
-        body: JSON.stringify({ clientId, currentUrl: fullUrl }),
-      }
-    );
+    const response = await fetch(BASE_URL + "/api/product-messages/start", {
+      method: "POST",
+      headers: new Headers({ "content-type": "application/json" }),
+      body: JSON.stringify({ clientId, currentUrl: fullUrl }),
+    });
     if (!response.ok) throw response.status;
 
     const { data } = await response.json();
